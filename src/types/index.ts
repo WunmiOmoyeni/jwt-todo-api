@@ -1,3 +1,6 @@
+import { Types } from "mongoose";
+import { Request } from "express";
+
 export interface IUser {
   username: string;
   email: string;
@@ -10,7 +13,7 @@ export interface ITodo {
   title: string;
   description?: string;
   completed: boolean;
-  user: string;
+  user: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
