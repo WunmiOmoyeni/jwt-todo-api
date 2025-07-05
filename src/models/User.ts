@@ -32,19 +32,20 @@ const userSchema = new Schema<IUserDocument>({
   timestamps: true
 });
 
-//Hash password before saving
+// Hash password before saving
 userSchema.pre('save', async function(next) {
     if (!this.isModified('password')) return next();
 
     try {
        const hash = await argon2.hash(this.password);
+       this.password = hash; // This line was missing!
        next();
     } catch (error) {
         next(error as any);
     }
 });
 
-userSchema.methods.comparePassword = async function (candidatePassword: string): Promise <boolean> {
+userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
     return argon2.verify(this.password, candidatePassword);
 };
 
