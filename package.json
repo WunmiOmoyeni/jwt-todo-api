@@ -5,7 +5,7 @@
   "description": "JWT Authentication API with Todo CRUD",
   "main": "dist/app.js",
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only src/app.ts",
+    "dev": "tsx watch src/app.ts",
     "build": "tsc",
     "start": "node dist/app.js"
   },
@@ -16,7 +16,7 @@
     "argon2": "^0.43.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.1",
-    "express": "^5.1.0",
+    "express": "^4.18.2",
     "express-validator": "^7.2.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.1"
@@ -27,6 +27,7 @@
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.0.10",
     "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

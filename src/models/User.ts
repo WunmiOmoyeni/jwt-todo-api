@@ -1,6 +1,6 @@
 import mongoose, { Schema, Document } from "mongoose";
 import argon2 from "argon2";
-import { IUser } from "../types";
+import { IUser } from "../types/index.js";
 
 export interface IUserDocument extends IUser, Document {
   comparePassword(candidatePassword: string): Promise<boolean>;

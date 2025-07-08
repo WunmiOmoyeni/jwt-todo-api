@@ -6,9 +6,9 @@ import {
     updateTodo,
     toggleTodo,
     deleteTodo
-} from '../controllers/todoController';
-import { todoValidation } from "../utils/validation";
-import { authenticateToken } from "../middleware/auth";
+} from '../controllers/todoController.js';
+import { todoValidation } from "../utils/validation.js";
+import { authenticateToken } from "../middleware/auth.js";
 
 const router = Router();
 //All todo routes require authentication

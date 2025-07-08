@@ -1,15 +1,13 @@
 import { Request, Response } from "express";
-import { generateToken } from "../utils/jwt";
-import User from "../models/User";
-import { AuthRequest } from "../types";
+import { generateToken } from "../utils/jwt.js";
+import User from "../models/User.js";
+import { AuthRequest } from "../types/index.js";
 import mongoose from "mongoose";
 
 export const register = async (req: Request, res: Response): Promise<void> => {
   try {
-
     const { username, email, password } = req.body;
 
-    //Check if user already exists
     const existingUser = await User.findOne({
       $or: [{ email }, { username }],
     });
@@ -20,13 +18,12 @@ export const register = async (req: Request, res: Response): Promise<void> => {
         success: false,
         message: `User with this ${field} already exists`,
       });
+      return;
     }
 
-    //Create new user
     const user = new User({ username, email, password });
     await user.save();
 
-    // Generate token
     const token = generateToken(
       (user._id as mongoose.Types.ObjectId).toString()
     );
@@ -52,12 +49,10 @@ export const register = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-
 export const login = async (req: Request, res: Response): Promise<void> => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
     const user = await User.findOne({ email });
     if (!user) {
       res.status(401).json({
@@ -67,7 +62,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Check password
     const isPasswordValid = await user.comparePassword(password);
     if (!isPasswordValid) {
       res.status(401).json({
@@ -77,7 +71,6 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Generate token
     const token = generateToken(
       (user._id as mongoose.Types.ObjectId).toString()
     );
@@ -103,28 +96,35 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
+export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const user = await User.findById(req.user?.id).select("-password");
 
-export const getProfile = async(req: AuthRequest, res: Response) => {
-    try {
-        const user = await User.findById(req.user?.id).select('-password');
-
-        res.json({
-            success: true,
-            data: {
-                user: {
-                    id: user!._id,
-                    username: user!.username,
-                    email: user!.email,
-                    createdAt: user!.createdAt,
-                    updatedAt: user!.updatedAt
-                }
-            }
-        })
-    } catch (error:any) {
-        res.status(500).json({
-            success: false,
-            message: 'Server error',
-            error: error.message
-        });
+    if (!user) {
+      res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+      return;
     }
-}
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      },
+    });
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: error.message,
+    });
+  }
+};

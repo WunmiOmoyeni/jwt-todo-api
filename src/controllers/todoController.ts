@@ -1,18 +1,16 @@
 import { Response } from "express";
-import Todo from "../models/Todo";
-import { AuthRequest } from "../types";
+import Todo from "../models/Todo.js";
+import { AuthRequest } from "../types/index.js";
 
-export const getTodos = async (req: AuthRequest, res: Response) => {
+export const getTodos = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { page = 1, limit = 10, completed, search } = req.query;
     const query: any = { user: req.user!.id };
 
-    //Filter by completion status
     if (completed !== undefined) {
       query.completed = completed === "true";
     }
 
-    //Search in title and description
     if (search) {
       query.$or = [
         { title: { $regex: search, $options: "i" } },
@@ -21,12 +19,7 @@ export const getTodos = async (req: AuthRequest, res: Response) => {
     }
 
     const skip = (Number(page) - 1) * Number(limit);
-
-    const todos = await Todo.find(query)
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(Number(limit));
-
+    const todos = await Todo.find(query).sort({ createdAt: -1 }).skip(skip).limit(Number(limit));
     const total = await Todo.countDocuments(query);
 
     res.json({
@@ -44,27 +37,19 @@ export const getTodos = async (req: AuthRequest, res: Response) => {
   } catch (error: any) {
     res.status(500).json({
       success: false,
-      message: "Server Error",
+      message: "Server error",
       error: error.message,
     });
   }
 };
 
-export const getTodo = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const getTodo = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const todo = await Todo.findOne({
-      _id: req.params.id,
-      user: req.user!.id,
-    });
+    const todo = await Todo.findOne({ _id: req.params.id, user: req.user!.id });
 
     if (!todo) {
-      res.status(400).json({
-        success: false,
-        message: "Todo not found",
-      });
+      res.status(404).json({ success: false, message: "Todo not found" });
+      return;
     }
 
     res.json({
@@ -80,7 +65,7 @@ export const getTodo = async (
   }
 };
 
-export const createTodo = async (req: AuthRequest, res: Response) => {
+export const createTodo = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { title, description } = req.body;
 
@@ -106,10 +91,7 @@ export const createTodo = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const updateTodo = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const updateTodo = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
     const { title, description, completed } = req.body;
 
@@ -120,10 +102,8 @@ export const updateTodo = async (
     );
 
     if (!todo) {
-      res.status(404).json({
-        success: false,
-        message: "Todo not found",
-      });
+      res.status(404).json({ success: false, message: "Todo not found" });
+      return;
     }
 
     res.json({
@@ -140,21 +120,12 @@ export const updateTodo = async (
   }
 };
 
-export const toggleTodo = async (
-  req: AuthRequest,
-  res: Response
-): Promise<void> => {
+export const toggleTodo = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const todo = await Todo.findOne({
-      _id: req.params.id,
-      user: req.user!.id,
-    });
+    const todo = await Todo.findOne({ _id: req.params.id, user: req.user!.id });
 
     if (!todo) {
-      res.status(404).json({
-        success: false,
-        message: "Todo not found",
-      });
+      res.status(404).json({ success: false, message: "Todo not found" });
       return;
     }
 
@@ -175,18 +146,13 @@ export const toggleTodo = async (
   }
 };
 
-export const deleteTodo = async (req: AuthRequest, res: Response): Promise <void> => {
+export const deleteTodo = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const todo = await Todo.findOneAndDelete({
-      _id: req.params.id,
-      user: req.user!.id,
-    });
+    const todo = await Todo.findOneAndDelete({ _id: req.params.id, user: req.user!.id });
 
     if (!todo) {
-    res.status(404).json({
-        success: false,
-        message: "Todo not found",
-      });
+      res.status(404).json({ success: false, message: "Todo not found" });
+      return;
     }
 
     res.json({
