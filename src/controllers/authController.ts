@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { generateToken } from "../utils/jwt.js";
+import { generateToken, generateRefreshToken } from "../utils/jwt.js";
 import User from "../models/User.js";
 import { AuthRequest } from "../types/index.js";
 import mongoose from "mongoose";
@@ -71,15 +71,26 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    const token = generateToken(
+    const accessToken = generateToken(
       (user._id as mongoose.Types.ObjectId).toString()
     );
+
+    const refreshToken = generateRefreshToken(
+      (user._id as mongoose.Types.ObjectId).toString()
+    );
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
     res.json({
       success: true,
       message: "Login successful",
       data: {
-        token,
+        accessToken,
         user: {
           id: user._id,
           username: user.username,
@@ -96,7 +107,10 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 };
 
-export const getProfile = async (req: AuthRequest, res: Response): Promise<void> => {
+export const getProfile = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
   try {
     const user = await User.findById(req.user?.id).select("-password");
 
